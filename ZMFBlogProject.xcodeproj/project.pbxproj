@@ -18,6 +18,7 @@
 		E2F4938022BA2972000BBBB3 /* MFRootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E2F4937F22BA2972000BBBB3 /* MFRootViewController.m */; };
 		E2F4938422BA2B8C000BBBB3 /* MFMemoryLeakViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E2F4938322BA2B8C000BBBB3 /* MFMemoryLeakViewController.m */; };
 		E2F4939622BA36A5000BBBB3 /* MFRootTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E2F4939522BA36A5000BBBB3 /* MFRootTableViewCell.m */; };
+		E2F67A4E22C4BA47003296D5 /* MFMemoryLeakObject.m in Sources */ = {isa = PBXBuildFile; fileRef = E2F67A4D22C4BA47003296D5 /* MFMemoryLeakObject.m */; };
 		E2FA221522BB378D00D5D513 /* MemoryLeakTip.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = E2FA221422BB378D00D5D513 /* MemoryLeakTip.jpeg */; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,8 @@
 		E2F4938322BA2B8C000BBBB3 /* MFMemoryLeakViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MFMemoryLeakViewController.m; sourceTree = "<group>"; };
 		E2F4939422BA36A5000BBBB3 /* MFRootTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MFRootTableViewCell.h; sourceTree = "<group>"; };
 		E2F4939522BA36A5000BBBB3 /* MFRootTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MFRootTableViewCell.m; sourceTree = "<group>"; };
+		E2F67A4C22C4BA47003296D5 /* MFMemoryLeakObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MFMemoryLeakObject.h; sourceTree = "<group>"; };
+		E2F67A4D22C4BA47003296D5 /* MFMemoryLeakObject.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MFMemoryLeakObject.m; sourceTree = "<group>"; };
 		E2FA221422BB378D00D5D513 /* MemoryLeakTip.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MemoryLeakTip.jpeg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -100,6 +103,8 @@
 				E2DDEBDB22C3208600260E41 /* MFTarget.m */,
 				E2DDEBFB22C372FB00260E41 /* MFTimer.h */,
 				E2DDEBFC22C372FB00260E41 /* MFTimer.m */,
+				E2F67A4C22C4BA47003296D5 /* MFMemoryLeakObject.h */,
+				E2F67A4D22C4BA47003296D5 /* MFMemoryLeakObject.m */,
 			);
 			path = MemoryLeak;
 			sourceTree = "<group>";
@@ -204,6 +209,7 @@
 			files = (
 				E2F4936722BA1D7F000BBBB3 /* main.m in Sources */,
 				DF4532A322C39E55003119D8 /* MFMemoryLeakView.m in Sources */,
+				E2F67A4E22C4BA47003296D5 /* MFMemoryLeakObject.m in Sources */,
 				E2DDEBDC22C3208600260E41 /* MFTarget.m in Sources */,
 				E2F4935922BA1D7C000BBBB3 /* AppDelegate.m in Sources */,
 				E2F4938422BA2B8C000BBBB3 /* MFMemoryLeakViewController.m in Sources */,

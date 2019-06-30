@@ -6,9 +6,15 @@
 #import "MFMemoryLeakView.h"
 #import "MFTarget.h"
 #import "MFTimer.h"
+#import "MFMemoryLeakObject.h"
+
+typedef void (^BlockType)(void);
 
 @interface MFMemoryLeakViewController ()<MFMemoryLeakViewDelegate>
+@property (nonatomic, strong) id observer;
 @property (nonatomic, assign) NSInteger timerCount;
+@property (nonatomic, copy) BlockType block;
+@property (nonatomic, strong) NSTimer *timer;
 @end
 
 @implementation MFMemoryLeakViewController
@@ -25,6 +31,7 @@
 //    [self.view addSubview:view];
     
     // 2.CoreGraphics框架里申请的内存忘记释放
+//    MFMemoryLeakView *view = [[MFMemoryLeakView alloc] initWithFrame:self.view.bounds];
 //    UIImage *newImage = [self coreGraphicsMemoryLeak];
 //    if (newImage) {
 //        view.imageV.image = newImage;
@@ -36,9 +43,20 @@
     
     
     // 4.NSTimer未释放
-    self.timerCount = 5;
-    [self timerMemoryLeak];
+//    self.timerCount = 5;
+//    [self timerMemoryLeak];
     
+    // 5.通知造成的内存泄漏
+//    [self notiMemoryLeak];
+    
+    // 6.KVO造成的内存泄漏
+//    [self kvoMemoryLeak];
+    
+    // 7.block造成的内存泄漏
+//    [self blockMemoryLeak];
+    
+    // 8.NSThread造成的内存泄漏
+    [self threadMemoryLeak];
 }
 
 #pragma mark - 2.CoreGraphics框架
@@ -97,9 +115,92 @@
     NSLog(@"11111%@",timer.userInfo);
 }
 
+#pragma mark - 5.通知造成的内存泄漏
+- (void)notiMemoryLeak {
+    
+    // 5.1 ios9以后一般的通知不再需要手动移除
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notiAction) name:@"notiMemoryLeak" object:nil];
+    
+    // 5.2 block方式监听的通知需要进行移除
+    self.observer = [[NSNotificationCenter defaultCenter] addObserverForName:@"notiMemoryLeak" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
+        NSLog(@"11111");
+    }];
+    //发个通知
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"notiMemoryLeak" object:nil];
+    
+}
+
+- (void)notiAction {
+    NSLog(@"11111");
+}
+
+#pragma mark - 6.KVO造成的内存泄漏
+- (void)kvoMemoryLeak {
+    //6.1 现在一般的使用kvo，就算不移除观察者，也不会有问题了
+//    MFMemoryLeakView *view = [[MFMemoryLeakView alloc] initWithFrame:self.view.bounds];
+//    [self.view addSubview:view];
+//    [view addObserver:self forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
+//    //调用这两句主动激发kvo  具体的原理会有后期的kvo详解中解释
+//    [view willChangeValueForKey:@"frame"];
+//    [view didChangeValueForKey:@"frame"];
+    
+    //6.2 在MFMemoryLeakView监听一个单例对象
+    MFMemoryLeakView *view = [[MFMemoryLeakView alloc] initWithFrame:self.view.bounds];
+    [self.view addSubview:view];
+    [MFMemoryLeakObject sharedInstance].title = @"2";
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [view removeFromSuperview];
+        [MFMemoryLeakObject sharedInstance].title = @"3";
+    });
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"frame"]) {
+        NSLog(@"view = %@",object);
+    }
+}
+
+#pragma mark - 7.block 造成的内存泄漏
+- (void)blockMemoryLeak {
+    // 7.1 正常block循环引用
+//    __weak typeof(self) weakSelf = self;
+//    self.block = ^(){
+//        //建议加一下强引用，避免weakSelf被释放掉
+//        __strong typeof(weakSelf) strongSelf = weakSelf;
+//        NSLog(@"MFMemoryLeakViewController = %@",strongSelf);
+//        NSLog(@"MFMemoryLeakViewController = %zd",strongSelf->_timerCount);
+//    };
+//    self.block();
+    
+    // 7.2 NSTimer使用block创建的时候，要注意循环引用
+    __weak typeof(self) weakSelf = self;
+    _timer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        NSLog(@"MFMemoryLeakViewController = %@",weakSelf);
+    }];
+    
+}
+
+#pragma mark - 8.NSThread 造成的内存泄漏
+- (void)threadMemoryLeak {
+//    NSThread *thread = [[NSThread alloc] initWithTarget:self selector:@selector(threadRun) object:nil];
+    NSThread *thread = [[NSThread alloc] initWithBlock:^{
+        [[NSRunLoop currentRunLoop] addPort:[[NSPort alloc] init] forMode:NSDefaultRunLoopMode];
+        [[NSRunLoop currentRunLoop] run];
+    }];
+    [thread start];
+    
+}
+
+- (void)threadRun {
+    [[NSRunLoop currentRunLoop] addPort:[[NSPort alloc] init] forMode:NSDefaultRunLoopMode];
+    [[NSRunLoop currentRunLoop] run];
+}
 
 - (void)dealloc {
-    NSLog(@"hi,我 dealloc 了啊");
+    [_timer invalidate];
+//    [[NSNotificationCenter defaultCenter] removeObserver:self.observer name:@"notiMemoryLeak" object:nil];
+    NSLog(@"hi,我MFMemoryLeakViewController dealloc 了啊");
 }
 
 @end
