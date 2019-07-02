@@ -7,14 +7,17 @@
 #import "MFTarget.h"
 #import "MFTimer.h"
 #import "MFMemoryLeakObject.h"
+#import <WebKit/WebKit.h>
 
 typedef void (^BlockType)(void);
 
-@interface MFMemoryLeakViewController ()<MFMemoryLeakViewDelegate>
+@interface MFMemoryLeakViewController ()<MFMemoryLeakViewDelegate,WKScriptMessageHandler>
 @property (nonatomic, strong) id observer;
 @property (nonatomic, assign) NSInteger timerCount;
 @property (nonatomic, copy) BlockType block;
 @property (nonatomic, strong) NSTimer *timer;
+@property (nonatomic, strong) UIWebView *webView;
+@property (nonatomic, strong) WKWebView *wkWebView;
 @end
 
 @implementation MFMemoryLeakViewController
@@ -56,7 +59,10 @@ typedef void (^BlockType)(void);
 //    [self blockMemoryLeak];
     
     // 8.NSThread造成的内存泄漏
-    [self threadMemoryLeak];
+//    [self threadMemoryLeak];
+    
+    // 9.webview造成的内存泄漏
+    [self webviewMemoryLeak];
 }
 
 #pragma mark - 2.CoreGraphics框架
@@ -197,7 +203,36 @@ typedef void (^BlockType)(void);
     [[NSRunLoop currentRunLoop] run];
 }
 
+#pragma mark - 9.webview 造成的内存泄漏
+- (void)webviewMemoryLeak {
+    // 9.1 UIWebView
+//    UIWebView *webView = [[UIWebView alloc] initWithFrame:self.view.bounds];
+//    webView.backgroundColor = [UIColor whiteColor];
+//    NSURLRequest *requset = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.baidu.com"]];
+//    [webView loadRequest:requset];
+//    [self.view addSubview:webView];
+//    self.webView = webView;
+    
+    // 9.2 WKWebView
+    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+    config.userContentController = [[WKUserContentController alloc] init];
+    [config.userContentController addScriptMessageHandler:self name:@"WKWebViewHandler"];
+    _wkWebView = [[WKWebView alloc] initWithFrame:self.view.bounds configuration:config];
+    _wkWebView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:_wkWebView];
+    NSURLRequest *requset = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.baidu.com"]];
+    [_wkWebView loadRequest:requset];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    [_wkWebView.configuration.userContentController removeScriptMessageHandlerForName:@"WKWebViewHandler"];
+}
+
+
 - (void)dealloc {
+//    NSURLRequest *requset = [NSURLRequest requestWithURL:[NSURL URLWithString:@""]];
+//    [_webView loadRequest:requset];
     [_timer invalidate];
 //    [[NSNotificationCenter defaultCenter] removeObserver:self.observer name:@"notiMemoryLeak" object:nil];
     NSLog(@"hi,我MFMemoryLeakViewController dealloc 了啊");
